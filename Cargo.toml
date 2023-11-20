@@ -1,0 +1,10 @@
+[package]
+name = "easyblink"
+version = "0.1.0"
+edition = "2023"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+blinkt = "0.7.0"
+num-traits = "0.2.17"
