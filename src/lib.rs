@@ -1,10 +1,8 @@
 extern crate blinkt;
-extern crate num_traits;
 use std::time::Duration;
 use blinkt::Blinkt;
 use blinkt::BlinktSpi;
 use std::thread::sleep;
-use num_traits::Float;
 
 
 const RED_HUE: i32 = 0;
