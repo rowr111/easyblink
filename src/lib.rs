@@ -1,8 +1,10 @@
 extern crate blinkt;
+extern crate rand;
 use std::time::Duration;
 use blinkt::Blinkt;
 use blinkt::BlinktSpi;
 use std::thread::sleep;
+use rand::{thread_rng, Rng};
 
 
 const RED_HUE: i32 = 0;
@@ -32,6 +34,7 @@ pub enum Color {
 pub enum Pattern {
     Pulse,
     Chase,
+    Sparkle,
 }
 
 impl EasyBlinkController {
@@ -55,6 +58,7 @@ impl EasyBlinkController {
         match pattern {
             Pattern::Pulse => self.pulse_color(color, delay_ms),
             Pattern::Chase => self.chase_color(color, delay_ms),
+            Pattern::Sparkle => self.sparkle_color(color, delay_ms),
         }
     }
 
@@ -117,6 +121,32 @@ impl EasyBlinkController {
             }
             Color::Purple => {
                 self.chase_solid_color(PURPLE_HUE, delay_ms)
+            }
+        }
+    }
+
+    fn sparkle_color(&mut self, color: Color, delay_ms: u64) {
+        match color {
+            Color::Rainbow => {
+                self.sparkle_solid_color(-1, delay_ms)
+            }
+            Color::Red => {
+                self.sparkle_solid_color(RED_HUE, delay_ms)
+            }
+            Color::Orange => {
+                self.sparkle_solid_color(ORANGE_HUE, delay_ms)
+            }
+            Color::Yellow => {
+                self.sparkle_solid_color(YELLOW_HUE, delay_ms)
+            }
+            Color::Green => {
+                self.sparkle_solid_color(GREEN_HUE, delay_ms)
+            }
+            Color::Blue => {
+                self.sparkle_solid_color(BLUE_HUE, delay_ms)
+            }
+            Color::Purple => {
+                self.sparkle_solid_color(PURPLE_HUE, delay_ms)
             }
         }
     }
@@ -194,6 +224,39 @@ impl EasyBlinkController {
         }
     }
 
+    fn sparkle_solid_color(&mut self, hue: i32, delay_ms: u64) {
+        let mut rng = thread_rng();
+
+        //dim out pixels
+        for pixel in &mut self.blinkt {
+            let (r, g, b) = pixel.rgb();
+            let (h, s, v) = rgb_to_hsv(r, g, b);
+            let (r_new, g_new, b_new) = hsv_to_rgb(h, s, v*0.75);
+            pixel.set_rgb(r_new, g_new, b_new);
+        }
+    
+        let num_sparks = if self.num_leds < 10 {
+            //always insure sparks even if led count is low
+            rng.gen_range(1..=self.num_leds) 
+        } else {
+            rng.gen_range(1..=self.num_leds / 10)
+        };
+    
+        for _ in 0..num_sparks {
+            let index = rng.gen_range(0..self.num_leds);
+            let value = rng.gen_range(0.5..=1.0);
+
+            let mut final_hue = hue;
+            if hue == -1 as i32 {
+                final_hue = ((index as f32 / (self.num_leds-1) as f32) * 179.0) as i32;
+            }
+            let (r, g, b) = hsv_to_rgb(final_hue, 1, value);
+            self.blinkt.set_pixel(index, r, g, b);
+        }
+
+        self.blinkt.show().unwrap();
+        sleep(Duration::from_millis(delay_ms));
+    }
 }
 
 fn hsv_to_rgb(hue: i32, saturation: i32, value: f32) -> (u8, u8, u8) {
@@ -221,4 +284,37 @@ fn hsv_to_rgb(hue: i32, saturation: i32, value: f32) -> (u8, u8, u8) {
         ((g1 + m) * 255.0).round() as u8,
         ((b1 + m) * 255.0).round() as u8,
     )
+}
+
+fn rgb_to_hsv(r: u8, g: u8, b: u8) -> (i32, i32, f32) {
+    let r = r as f32 / 255.0;
+    let g = g as f32 / 255.0;
+    let b = b as f32 / 255.0;
+
+    let max = r.max(g).max(b);
+    let min = r.min(g).min(b);
+    let delta = max - min;
+
+    // Hue calculation
+    let hue = if delta == 0.0 {
+        0.0
+    } else if max == r {
+        60.0 * (((g - b) / delta) % 6.0)
+    } else if max == g {
+        60.0 * (((b - r) / delta) + 2.0)
+    } else {
+        60.0 * (((r - g) / delta) + 4.0)
+    };
+
+    // Saturation calculation
+    let saturation = if max == 0.0 {
+        0.0
+    } else {
+        delta / max
+    };
+
+    // Value calculation
+    let value = max;
+
+    ((hue/2.0) as i32, saturation as i32, value)
 }
