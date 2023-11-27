@@ -35,6 +35,7 @@ pub enum Pattern {
     Pulse,
     Chase,
     Sparkle,
+    KnightRider,
 }
 
 impl EasyBlinkController {
@@ -56,43 +57,44 @@ impl EasyBlinkController {
 
     pub fn execute_pattern(&mut self, color: Color, pattern: Pattern, delay_ms: u64) {
         match pattern {
-            Pattern::Pulse => self.pulse_color(color, delay_ms),
-            Pattern::Chase => self.chase_color(color, delay_ms),
-            Pattern::Sparkle => self.sparkle_color(color, delay_ms),
+            Pattern::Pulse => self.pulse(color, delay_ms),
+            Pattern::Chase => self.chase(color, delay_ms),
+            Pattern::Sparkle => self.sparkle(color, delay_ms),
+            Pattern::KnightRider => self.knightrider(color, delay_ms),
         }
     }
 
-    fn pulse_color(&mut self, color: Color, delay_ms: u64) {
+    fn pulse(&mut self, color: Color, delay_ms: u64) {
         match color {
             Color::Rainbow => {
-                self.pulse_solid_color(-1 as i32, delay_ms)
+                self.pulse_color(-1 as i32, delay_ms)
             }
             Color::Red => {
-                self.pulse_solid_color(RED_HUE, delay_ms)
+                self.pulse_color(RED_HUE, delay_ms)
             }
             Color::Orange => {
-                self.pulse_solid_color(ORANGE_HUE, delay_ms)
+                self.pulse_color(ORANGE_HUE, delay_ms)
             }
             Color::Yellow => {
-                self.pulse_solid_color(YELLOW_HUE, delay_ms)
+                self.pulse_color(YELLOW_HUE, delay_ms)
             }
             Color::Green => {
-                self.pulse_solid_color(GREEN_HUE, delay_ms)
+                self.pulse_color(GREEN_HUE, delay_ms)
             }
             Color::Blue => {
-                self.pulse_solid_color(BLUE_HUE, delay_ms)
+                self.pulse_color(BLUE_HUE, delay_ms)
             }
             Color::Purple => {
-                self.pulse_solid_color(PURPLE_HUE, delay_ms)
+                self.pulse_color(PURPLE_HUE, delay_ms)
             }
         }
     }
 
-    fn chase_color(&mut self, color: Color, delay_ms: u64) {
+    fn chase(&mut self, color: Color, delay_ms: u64) {
         match color {
             Color::Rainbow => {
                 for offset in 0..179 {
-                    for i in 0..(self.num_leds-1) {
+                    for i in 0..self.num_leds {
                         let h = ((offset + i) % 179) as i32;
                         let (r, g, b) = hsv_to_rgb(h, 1, 1.0);
         
@@ -105,53 +107,79 @@ impl EasyBlinkController {
                 }
             }
             Color::Red => {
-                self.chase_solid_color(RED_HUE, delay_ms)
+                self.chase_color(RED_HUE, delay_ms)
             }
             Color::Orange => {
-                self.chase_solid_color(ORANGE_HUE, delay_ms)
+                self.chase_color(ORANGE_HUE, delay_ms)
             }
             Color::Yellow => {
-                self.chase_solid_color(YELLOW_HUE, delay_ms)
+                self.chase_color(YELLOW_HUE, delay_ms)
             }
             Color::Green => {
-                self.chase_solid_color(GREEN_HUE, delay_ms)
+                self.chase_color(GREEN_HUE, delay_ms)
             }
             Color::Blue => {
-                self.chase_solid_color(BLUE_HUE, delay_ms)
+                self.chase_color(BLUE_HUE, delay_ms)
             }
             Color::Purple => {
-                self.chase_solid_color(PURPLE_HUE, delay_ms)
+                self.chase_color(PURPLE_HUE, delay_ms)
             }
         }
     }
 
-    fn sparkle_color(&mut self, color: Color, delay_ms: u64) {
+    fn sparkle(&mut self, color: Color, delay_ms: u64) {
         match color {
             Color::Rainbow => {
-                self.sparkle_solid_color(-1, delay_ms)
+                self.sparkle_color(-1, delay_ms)
             }
             Color::Red => {
-                self.sparkle_solid_color(RED_HUE, delay_ms)
+                self.sparkle_color(RED_HUE, delay_ms)
             }
             Color::Orange => {
-                self.sparkle_solid_color(ORANGE_HUE, delay_ms)
+                self.sparkle_color(ORANGE_HUE, delay_ms)
             }
             Color::Yellow => {
-                self.sparkle_solid_color(YELLOW_HUE, delay_ms)
+                self.sparkle_color(YELLOW_HUE, delay_ms)
             }
             Color::Green => {
-                self.sparkle_solid_color(GREEN_HUE, delay_ms)
+                self.sparkle_color(GREEN_HUE, delay_ms)
             }
             Color::Blue => {
-                self.sparkle_solid_color(BLUE_HUE, delay_ms)
+                self.sparkle_color(BLUE_HUE, delay_ms)
             }
             Color::Purple => {
-                self.sparkle_solid_color(PURPLE_HUE, delay_ms)
+                self.sparkle_color(PURPLE_HUE, delay_ms)
             }
         }
     }
 
-    fn pulse_solid_color(&mut self, hue: i32, delay_ms: u64) {
+    fn knightrider(&mut self, color: Color, delay_ms: u64) {
+        match color {
+            Color::Rainbow => {
+                self.knightrider_color(-1, delay_ms)
+            }
+            Color::Red => {
+                self.knightrider_color(RED_HUE, delay_ms)
+            }
+            Color::Orange => {
+                self.knightrider_color(ORANGE_HUE, delay_ms)
+            }
+            Color::Yellow => {
+                self.knightrider_color(YELLOW_HUE, delay_ms)
+            }
+            Color::Green => {
+                self.knightrider_color(GREEN_HUE, delay_ms)
+            }
+            Color::Blue => {
+                self.knightrider_color(BLUE_HUE, delay_ms)
+            }
+            Color::Purple => {
+                self.knightrider_color(PURPLE_HUE, delay_ms)
+            }
+        }
+    }
+
+    fn pulse_color(&mut self, hue: i32, delay_ms: u64) {
         let max_steps = 100; //arbitrary value..
         for step in 0..max_steps {
             //convert the step to a value in the range 0.0 to 1.0 and back to 0.0
@@ -164,9 +192,9 @@ impl EasyBlinkController {
         
             if hue == -1 as i32 {
                 //rainbow time!
-                for i in 0..(self.num_leds-1) {
+                for i in 0..self.num_leds {
                     //one rainbow across everything
-                    let hue = (i as f32 / (self.num_leds-1) as f32) * 179.0;
+                    let hue = (i as f32 / self.num_leds as f32) * 179.0;
                     let (r, g, b) = hsv_to_rgb(hue as i32, 1, value);
                     self.blinkt.set_pixel(i as usize, r, g, b);
                 }
@@ -175,7 +203,7 @@ impl EasyBlinkController {
                 //solid color
                 let (r, g, b) = hsv_to_rgb(hue, 1, value);
         
-                for i in 0..(self.num_leds-1) {
+                for i in 0..self.num_leds {
                     self.blinkt.set_pixel(i as usize, r, g, b);
                 }
             }
@@ -185,7 +213,7 @@ impl EasyBlinkController {
         }
     }
 
-    fn chase_solid_color(&mut self, hue: i32, delay_ms: u64) {
+    fn chase_color(&mut self, hue: i32, delay_ms: u64) {
         //band of 30 leds each
         let band_size = 30;
         //if there are less than 30 leds, just one band of color - otherwise, party!
@@ -196,8 +224,8 @@ impl EasyBlinkController {
 
         let band_width = self.num_leds / (2 * num_bands); //width of each color band
     
-        for step in 0..(self.num_leds-1) {
-            for i in 0..(self.num_leds-1) {
+        for step in 0..self.num_leds {
+            for i in 0..self.num_leds {
                 let mut value: f32 = 0.0;
         
                 for n in 0..num_bands {
@@ -224,7 +252,7 @@ impl EasyBlinkController {
         }
     }
 
-    fn sparkle_solid_color(&mut self, hue: i32, delay_ms: u64) {
+    fn sparkle_color(&mut self, hue: i32, delay_ms: u64) {
         let mut rng = thread_rng();
 
         //dim out pixels
@@ -248,7 +276,7 @@ impl EasyBlinkController {
 
             let mut final_hue = hue;
             if hue == -1 as i32 {
-                final_hue = ((index as f32 / (self.num_leds-1) as f32) * 179.0) as i32;
+                final_hue = ((index as f32 / self.num_leds as f32) * 179.0) as i32;
             }
             let (r, g, b) = hsv_to_rgb(final_hue, 1, value);
             self.blinkt.set_pixel(index, r, g, b);
@@ -256,6 +284,48 @@ impl EasyBlinkController {
 
         self.blinkt.show().unwrap();
         sleep(Duration::from_millis(delay_ms));
+    }
+
+    fn knightrider_color(&mut self, hue: i32, delay_ms: u64) {
+        //40% of the total width
+        let mut tail_length = (self.num_leds as f32 * 0.4) as usize;
+        if tail_length < 1 as usize {
+            tail_length = 1;
+        }
+
+        let mut position = 0;
+        let mut direction = 1; //1 for forwards, -1 for backwards
+    
+        //total steps needed for one full bounce
+        let total_steps = 2 * self.num_leds - 1;
+        for _ in 0..total_steps {
+
+            for i in 0..self.num_leds {
+                let mut final_hue = hue;
+                if hue == -1 as i32 {
+                    final_hue = ((i as f32 / self.num_leds as f32) * 179.0) as i32;
+                }
+    
+                let distance = (position as i32 - i as i32).abs() as usize;
+                let brightness = if distance <= tail_length {
+                    1.0 - (distance as f32 / tail_length as f32)
+                } else {
+                    0.0
+                };
+    
+                let (r, g, b) = hsv_to_rgb(final_hue, 1, brightness);
+                self.blinkt.set_pixel(i, r, g, b);
+            }
+          
+            //update position and reverse direction at the ends
+            position = (position as i32 + direction as i32) as i32;
+            if position <= 0 - tail_length as i32 || position >= self.num_leds as i32 - 1 {
+                direction *= -1;
+            }
+
+            self.blinkt.show().unwrap();
+            sleep(Duration::from_millis(delay_ms));
+        }
     }
 }
 
