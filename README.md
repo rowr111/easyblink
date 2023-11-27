@@ -15,12 +15,12 @@ extern crate easyblink;
 use easyblink::{EasyBlinkController, Color, Pattern};
 
 fn main() {
-    // declare a controller with the number of leds and a time delay (will move this later to execute_pattern)
-    let mut controller = EasyBlinkController::new(120, 20);
+    // declare a controller with the number of leds
+    let mut controller = EasyBlinkController::new(120);
 
-    // execute a pattern in the color of your choosing.  must be in a loop otherwise it won't keep going..
+    // execute a pattern in the color of your choosing.  must be in a loop otherwise it won't keep going..  last value is the delay_ms, play around to find what works for you
     loop {
-        controller.execute_pattern(Color::Rainbow, Pattern::Chase);
+        controller.execute_pattern(Color::Rainbow, Pattern::Chase, 20);
         // et voila!
     }
 }
