@@ -8,11 +8,11 @@ use rand::{thread_rng, Rng};
 
 
 const RED_HUE: i32 = 0;
-const ORANGE_HUE: i32 = 9;
-const YELLOW_HUE: i32 = 20;
-const GREEN_HUE: i32 = 58;
-const BLUE_HUE: i32 = 120;
-const PURPLE_HUE: i32 = 133;
+const ORANGE_HUE: i32 = 18;
+const YELLOW_HUE: i32 = 40;
+const GREEN_HUE: i32 = 116;
+const BLUE_HUE: i32 = 240;
+const PURPLE_HUE: i32 = 266;
 
 pub struct EasyBlinkController {
     blinkt: Blinkt,
@@ -93,11 +93,11 @@ impl EasyBlinkController {
     fn chase(&mut self, color: Color, delay_ms: u64) {
         match color {
             Color::Rainbow => {
-                for offset in 0..179 {
+
+                for offset in 0..360 {
                     for i in 0..self.num_leds {
-                        let h = ((offset + i) % 179) as i32;
-                        let (r, g, b) = hsv_to_rgb(h, 1, 1.0);
-        
+                        let hue = (offset as f32 + (360.0 / self.num_leds as f32) * i as f32) % 360.0;
+                        let (r, g, b) = hsv_to_rgb(hue as i32, 1, 1.0);
                         self.blinkt.set_pixel(i as usize, r, g, b);
                     }
             
@@ -194,7 +194,7 @@ impl EasyBlinkController {
                 //rainbow time!
                 for i in 0..self.num_leds {
                     //one rainbow across everything
-                    let hue = (i as f32 / self.num_leds as f32) * 179.0;
+                    let hue = (i as f32 / self.num_leds as f32) * 359.0;
                     let (r, g, b) = hsv_to_rgb(hue as i32, 1, value);
                     self.blinkt.set_pixel(i as usize, r, g, b);
                 }
@@ -276,7 +276,7 @@ impl EasyBlinkController {
 
             let mut final_hue = hue;
             if hue == -1 as i32 {
-                final_hue = ((index as f32 / self.num_leds as f32) * 179.0) as i32;
+                final_hue = ((index as f32 / self.num_leds as f32) * 359.0) as i32;
             }
             let (r, g, b) = hsv_to_rgb(final_hue, 1, value);
             self.blinkt.set_pixel(index, r, g, b);
@@ -303,7 +303,7 @@ impl EasyBlinkController {
             for i in 0..self.num_leds {
                 let mut final_hue = hue;
                 if hue == -1 as i32 {
-                    final_hue = ((i as f32 / self.num_leds as f32) * 179.0) as i32;
+                    final_hue = ((i as f32 / self.num_leds as f32) * 359.0) as i32;
                 }
     
                 let distance = (position as i32 - i as i32).abs() as usize;
@@ -331,19 +331,19 @@ impl EasyBlinkController {
 
 fn hsv_to_rgb(hue: i32, saturation: i32, value: f32) -> (u8, u8, u8) {
     let chroma = value * saturation as f32;
-    let x = chroma * (1.0 - ((hue as f32 / 30.0) % 2.0 - 1.0).abs());
+    let x = chroma * (1.0 - ((hue as f32 / 60.0) % 2.0 - 1.0).abs());
     let m = value - chroma;
 
     let (r1, g1, b1) = 
-        if hue >= 0 && hue < 30 {
+        if hue >= 0 && hue < 60 {
             (chroma, x, 0.0)
-        } else if hue >= 30 && hue < 60 {
+        } else if hue >= 60 && hue < 120 {
             (x, chroma, 0.0)
-        } else if hue >= 60 && hue < 90 {
+        } else if hue >= 120 && hue < 180 {
             (0.0, chroma, x)
-        } else if hue >= 90 && hue < 120 {
+        } else if hue >= 180 && hue < 240 {
             (0.0, x, chroma)
-        } else if hue >= 120 && hue < 150 {
+        } else if hue >= 240 && hue < 300 {
             (x, 0.0, chroma)
         } else {
             (chroma, 0.0, x)
@@ -386,5 +386,5 @@ fn rgb_to_hsv(r: u8, g: u8, b: u8) -> (i32, i32, f32) {
     // Value calculation
     let value = max;
 
-    ((hue/2.0) as i32, saturation as i32, value)
+    (hue as i32, saturation as i32, value)
 }
