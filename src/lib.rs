@@ -19,7 +19,6 @@ pub struct EasyBlinkController {
     num_leds: usize,
 }
 
-#[derive(Debug)]
 pub enum Color {
     Red,
     Orange,
@@ -30,13 +29,18 @@ pub enum Color {
     Rainbow,
 }
 
-#[derive(Debug)]
 pub enum Pattern {
     Pulse,
     Chase,
     Sparkle,
     KnightRider,
 }
+
+pub enum Christmas {
+    Fireplace,
+    Traditional,
+}
+
 
 impl EasyBlinkController {
     pub fn new(num_leds: usize) -> EasyBlinkController {
@@ -61,6 +65,14 @@ impl EasyBlinkController {
             Pattern::Chase => self.chase(color, delay_ms),
             Pattern::Sparkle => self.sparkle(color, delay_ms),
             Pattern::KnightRider => self.knightrider(color, delay_ms),
+        }
+    }
+
+    pub fn execute_christmas(&mut self, pattern: Christmas, delay_ms: u64) {
+        match pattern {
+            Christmas::Fireplace => self.fireplace(delay_ms),
+            //picked some traditional colors
+            Christmas::Traditional => self.traditional(&[-1, 0, 120, 240, 270], delay_ms),
         }
     }
 
@@ -297,7 +309,7 @@ impl EasyBlinkController {
         let mut direction = 1; //1 for forwards, -1 for backwards
     
         //total steps needed for one full bounce
-        let total_steps = 2 * self.num_leds - 1;
+        let total_steps = 2 * self.num_leds;
         for _ in 0..total_steps {
 
             for i in 0..self.num_leds {
@@ -327,6 +339,67 @@ impl EasyBlinkController {
             sleep(Duration::from_millis(delay_ms));
         }
     }
+
+    fn fireplace(&mut self, delay_ms: u64) {
+        let mut rng = thread_rng();
+
+        //dim out pixels
+        for pixel in &mut self.blinkt {
+            let (r, g, b) = pixel.rgb();
+            let (h, s, v) = rgb_to_hsv(r, g, b);
+            let (r_new, g_new, b_new) = hsv_to_rgb(h, s, v*0.85);
+            pixel.set_rgb(r_new, g_new, b_new);
+        }
+    
+        let num_sparks = if self.num_leds < 10 {
+            //always insure sparks even if led count is low
+            rng.gen_range(1..=self.num_leds) 
+        } else {
+            rng.gen_range(1..=self.num_leds / 10)
+        };
+    
+        for _ in 0..num_sparks {
+            let index = rng.gen_range(0..self.num_leds);
+            let value = rng.gen_range(0.5..=1.0);
+            let hue = rng.gen_range(0.0..25.0);
+            let (r, g, b) = hsv_to_rgb(hue as i32, 1, value);
+            self.blinkt.set_pixel(index, r, g, b);
+        }
+
+        self.blinkt.show().unwrap();
+        sleep(Duration::from_millis(delay_ms));
+
+    }
+
+    fn traditional(&mut self, color_slice: &[i32], delay_ms: u64) {
+        let mut rng = thread_rng();
+   
+        let num_sparks = if self.num_leds < 10 {
+            //always insure sparks even if led count is low
+            rng.gen_range(1..=self.num_leds) 
+        } else {
+            rng.gen_range(1..=self.num_leds / 10)
+        };
+    
+        for _ in 0..num_sparks {
+            let index = rng.gen_range(0..self.num_leds);
+            let value = rng.gen_range(0.5..=1.0);
+            let hue = color_slice[rng.gen_range(0..color_slice.len())];
+            if hue == -1 as i32 {
+                self.blinkt.set_pixel(index, 255, 255, 255);
+            }
+            else {
+                let (r, g, b) = hsv_to_rgb(hue as i32, 1, value);
+                self.blinkt.set_pixel(index, r, g, b);
+            }
+            
+        }
+
+        self.blinkt.show().unwrap();
+        sleep(Duration::from_millis(delay_ms));
+
+    }
+
 }
 
 fn hsv_to_rgb(hue: i32, saturation: i32, value: f32) -> (u8, u8, u8) {
