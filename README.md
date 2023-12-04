@@ -4,7 +4,7 @@ blinky library built on top of the [blinkt Rust library](https://github.com/gole
 
 ## how to use
 This code assumes you have a strip of APA102 LEDs and a raspberry pi.
-Check the blinkt notes about for some details abut raspberry pi pins etc.
+Check the blinkt readme for some details abut raspberry pi pins etc.
 
 
 ### example code
