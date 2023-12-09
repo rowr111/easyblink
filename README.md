@@ -4,13 +4,15 @@ blinky library built on top of the [blinkt Rust library](https://github.com/gole
 
 ## how to use
 This code assumes you have a strip of APA102 LEDs and a raspberry pi.
-Check the blinkt readme for some details abut raspberry pi pins etc.
 
+Check the [blinkt docs](https://docs.golemparts.com/blinkt/0.7.1/blinkt/) for some details abut raspberry pi pins etc., but here's the TL;DR:
+
+- use `raspi-config` to enable SPI ports, under "Interface Options->SPI" (you should see an entry for `/dev/spidev0.0` if successful)
+- connect the APA102 clock pin to physical pin 23 ("GPIO 11") and data to physical pin 19 ("GPIO 10")
+- there is a convenient ground at physical pin 20
 
 ### example code
 ```
-extern crate easyblink;
-
 use easyblink::{EasyBlinkController, Color, Pattern};
 
 fn main() {
