@@ -2,6 +2,10 @@
 name = "easyblink"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Blinky library for controlling APA102 LEDs using a Raspberry Pi, built on top of the blinkt library."
+repository = "https://github.com/rowr111/easyblink"
+keywords = ["led", "pi", "APA102"]
 
 [dependencies]
 blinkt = "0.7.0"

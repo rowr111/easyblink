@@ -1,9 +1,13 @@
-# easyblink
-blinky library built on top of the [blinkt Rust library](https://github.com/golemparts/blinkt)
+# EasyBlink LED controller library
+ 
+The project provides a simple way to control a strip of APA102 LEDs using a Raspberry Pi. It is built on top of the [blinkt Rust library](https://github.com/golemparts/blinkt).
+ 
+It is meant at least in part to provide some ideas and code examples for people interested in getting started writing lighting patterns, although it also works well as an easy-to-use way to have some colorful blinky lights in your life.
 
+It would be awesome if you have an idea for a new pattern for the library or anything else that could improve this library - please make a pull request!
 
-## how to use
-This code assumes you have a strip of APA102 LEDs and a raspberry pi.
+## How to Use - Physical Setup
+This code assumes you have a linear strip of APA102 LEDs and a raspberry pi.
 
 Check the [blinkt docs](https://docs.golemparts.com/blinkt/0.7.1/blinkt/) for some details abut raspberry pi pins etc., but here's the TL;DR:
 
@@ -11,18 +15,18 @@ Check the [blinkt docs](https://docs.golemparts.com/blinkt/0.7.1/blinkt/) for so
 - connect the APA102 clock pin to physical pin 23 ("GPIO 11") and data to physical pin 19 ("GPIO 10")
 - there is a convenient ground at physical pin 20
 
-### example code
+## Simple Code Example:
 ```
-use easyblink::{EasyBlinkController, Color, Pattern};
+extern crate easyblink;
+
+use easyblink::{EasyBlinkController, ColorwayPattern};
 
 fn main() {
-    // declare a controller with the number of leds
     let mut controller = EasyBlinkController::new(120);
 
-    // execute a pattern in the color of your choosing.  must be in a loop otherwise it won't keep going..  last value is the delay_ms, play around to find what works for you
     loop {
-        controller.execute_pattern(Color::Rainbow, Pattern::Chase, 20);
-        // et voila!
+        controller.execute_colorway_pattern(ColorwayPattern::Fireplace, 40);
     }
+
 }
 ```
