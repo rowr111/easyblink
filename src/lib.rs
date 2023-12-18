@@ -1,3 +1,35 @@
+//! # EasyBlink LED controller library
+//! 
+//! The project provides a simple way to control a strip APA102 LEDs using a Raspberry Pi. It is built on top of the [blinkt Rust library](https://github.com/golemparts/blinkt).
+//! 
+//! It is meant at least in part to provide some ideas and code examples for people interested in getting started writing lighting patterns, although it also works well as an easy-to-use way to have some colorful blinky lights in your life.
+//! It would be awesome if you have an idea for a new pattern for the library or anything else that could improve this library - please make a pull request!
+//! 
+//! ## How to Use - Physical Setup
+//! This code assumes you have a linear strip of APA102 LEDs and a raspberry pi.
+//! 
+//! Check the [blinkt docs](https://docs.golemparts.com/blinkt/0.7.1/blinkt/) for some details abut raspberry pi pins etc., but here's the TL;DR:
+//! 
+//! - use `raspi-config` to enable SPI ports, under "Interface Options->SPI" (you should see an entry for `/dev/spidev0.0` if successful)
+//! - connect the APA102 clock pin to physical pin 23 ("GPIO 11") and data to physical pin 19 ("GPIO 10")
+//! - there is a convenient ground at physical pin 20
+//! 
+//! ## Simple Example:
+//! ```
+//! extern crate easyblink;
+//! 
+//! use easyblink::{EasyBlinkController, ColorwayPattern};
+//! 
+//! fn main() {
+//!     let mut controller = EasyBlinkController::new(120);
+//! 
+//!     loop {
+//!         controller.execute_colorway_pattern(ColorwayPattern::Fireplace, 40);
+//!     }
+//! 
+//! }
+//! ```
+
 extern crate blinkt;
 extern crate rand;
 use std::time::Duration;
@@ -14,35 +46,61 @@ const GREEN_HUE: i32 = 116;
 const BLUE_HUE: i32 = 240;
 const PURPLE_HUE: i32 = 266;
 
+/// The main struct. Use this to declare your controller with the number of LEDs in your strip.
 pub struct EasyBlinkController {
     blinkt: Blinkt,
     num_leds: usize,
 }
 
+/// Color choices to be passed to `execute_pattern`.
+/// Colors are translated to handpicked hue values, and there is also `Rainbow`,
+/// which means an evenly spaced spectrum of hue values will be used.
 pub enum Color {
+    /// hue value 0
     Red,
+    /// hue value 18
     Orange,
+    /// hue value 40
     Yellow,
+    /// hue value 116
     Green,
+    /// hue value 240
     Blue,
+    /// hue value 266
     Purple,
     Rainbow,
 }
 
+/// Pattern type to be passed to `execute_pattern`.
 pub enum Pattern {
+    /// All LEDs gently pulse.
     Pulse,
+    /// Endless scrolling of bands of color (for all solid colors), and endless scrolling of a rainbow for `Color::Rainbow`.
     Chase,
+    /// Random LEDs across the strip will suddenly brighten and fade slowly to off.
     Sparkle,
+    /// Inspired by the iconic lighting in the car K.I.T.T. from the 80s TV show Knight Rider.
     KnightRider,
 }
 
-pub enum Christmas {
+/// Pattern options restricted to one colorway, to be passed to `execute_colorway_pattern`.
+pub enum ColorwayPattern {
+    /// Reminiscent of a crackling fireplace. 
     Fireplace,
-    Traditional,
+    /// If you were going to light your Christmas tree with a string of lights, this colorway/pattern would be pretty typical.
+    ChristmasTraditional,
 }
 
 
 impl EasyBlinkController {
+
+    /// Creates a new `EasyBlinkController`.
+    /// `num_leds` should be at least 1.
+    /// 
+    /// Example (for a strip with 120 LEDs):
+    /// ```
+    /// let mut controller = EasyBlinkController::new(120);
+    /// ```
     pub fn new(num_leds: usize) -> EasyBlinkController {
         let new_blinkt = Blinkt::with_spi(BlinktSpi::default(), num_leds);
         EasyBlinkController {
@@ -51,14 +109,33 @@ impl EasyBlinkController {
         }
     }
 
+    /// Simple getter function to get the number of LEDs in an `EasyBlinkController`.
     pub fn get_num_leds(&self) -> usize {
         self.num_leds
     }
 
+    /// Simple setter function to set the number of LEDs in an `EasyBlinkController`.
     pub fn set_num_leds(&mut self, num_leds: usize) {
         self.num_leds = num_leds;
     }
 
+    /// The main function to execute lighting patterns.
+    /// All `Color` work with all `Pattern`.
+    /// It's suggested to play around with `delay_ms` to find a look for the pattern that suits your tastes.
+    /// 
+    /// To have the pattern run continuously, you must execute this function within a loop.
+    ///
+    /// Example:
+    /// ```
+    /// use easyblink::{EasyBlinkController, Color, Pattern};
+    /// 
+    /// fn main() {
+    ///     let mut controller = EasyBlinkController::new(120);
+    ///     loop {
+    ///         controller.execute_pattern(Color::Rainbow, Pattern::Chase, 20);
+    ///     }
+    /// }
+    /// ```
     pub fn execute_pattern(&mut self, color: Color, pattern: Pattern, delay_ms: u64) {
         match pattern {
             Pattern::Pulse => self.pulse(color, delay_ms),
@@ -68,11 +145,29 @@ impl EasyBlinkController {
         }
     }
 
-    pub fn execute_christmas(&mut self, pattern: Christmas, delay_ms: u64) {
+    /// Function to execute patterns with set specific colorways.
+    /// Similar to `execute_pattern` but uses `ColorwayPattern`. 
+    /// No `Color` is passed in since the colors used are specific to the pattern.
+    /// It's suggested to play around with `delay_ms` to find a look for the pattern that suits your tastes.
+    ///
+    /// Same as `execute_pattern`, this must be executed within a loop.
+    ///
+    /// Example:
+    /// ```
+    /// use easyblink::{EasyBlinkController, Color, Pattern};
+    /// 
+    /// fn main() {
+    ///     let mut controller = EasyBlinkController::new(120);
+    ///     loop {
+    ///         controller.execute_colorway_pattern(ColorwayPattern::Fireplace, 40);
+    ///     }
+    /// }
+    /// ```
+    pub fn execute_colorway_pattern(&mut self, pattern: ColorwayPattern, delay_ms: u64) {
         match pattern {
-            Christmas::Fireplace => self.fireplace(delay_ms),
+            ColorwayPattern::Fireplace => self.fireplace(delay_ms),
             //picked some traditional colors
-            Christmas::Traditional => self.traditional(&[-1, 0, 120, 240, 270], delay_ms),
+            ColorwayPattern::ChristmasTraditional => self.christmas_traditional(&[-1, 0, 120, 240, 270], delay_ms),
         }
     }
 
@@ -371,7 +466,7 @@ impl EasyBlinkController {
 
     }
 
-    fn traditional(&mut self, color_slice: &[i32], delay_ms: u64) {
+    fn christmas_traditional(&mut self, color_slice: &[i32], delay_ms: u64) {
         let mut rng = thread_rng();
    
         let num_sparks = if self.num_leds < 10 {
